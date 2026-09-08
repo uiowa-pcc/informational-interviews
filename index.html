@@ -423,7 +423,7 @@
     }
   </style>
 </head>
-<body>
+<body><noscript>This planner requires JavaScript for step-by-step navigation.</noscript>
 <a class="skip-link" href="#planner">Skip to activity</a>
 <main class="wrap">
 <section id="planner">
@@ -661,6 +661,42 @@ Thank you,
 </main>
 <script>
 (function(){
+  let currentWizardPage = 1;
+  const totalWizardPages = 4;
+
+  function showWizardPage(page){
+    currentWizardPage = Math.max(1, Math.min(totalWizardPages, Number(page) || 1));
+
+    document.querySelectorAll('.wizard-page').forEach(p => {
+      p.classList.toggle('active', Number(p.dataset.page) === currentWizardPage);
+    });
+
+    const fill = document.getElementById('wizardFill');
+    const text = document.getElementById('wizardText');
+    if(fill) fill.style.width = ((currentWizardPage / totalWizardPages) * 100) + '%';
+    if(text) text.textContent = 'Step ' + currentWizardPage + ' of ' + totalWizardPages;
+
+    const active = document.querySelector('.wizard-page.active');
+    if(active){
+      active.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  }
+
+  document.addEventListener('click', function(event){
+    const next = event.target.closest('[data-next]');
+    if(next){
+      event.preventDefault();
+      showWizardPage(next.getAttribute('data-next'));
+      return;
+    }
+
+    const prev = event.target.closest('[data-prev]');
+    if(prev){
+      event.preventDefault();
+      showWizardPage(prev.getAttribute('data-prev'));
+    }
+  });
+
   const selectedQuestions = [];
 
   function togglePressed(button){
@@ -902,34 +938,14 @@ Thank you,
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
-  document.getElementById('createPlan').addEventListener('click', createPlan);
-  document.getElementById('editPlan').addEventListener('click', editPlan);
-  document.getElementById('printPlan').addEventListener('click', () => window.print());
-  document.getElementById('startOverTop').addEventListener('click', startOver);
-  document.getElementById('startOverBottom').addEventListener('click', startOver);
+  const createPlanBtn = document.getElementById('createPlan'); if(createPlanBtn) createPlanBtn.addEventListener('click', createPlan);
+  const editPlanBtn = document.getElementById('editPlan'); if(editPlanBtn) editPlanBtn.addEventListener('click', editPlan);
+  const printPlanBtn = document.getElementById('printPlan'); if(printPlanBtn) printPlanBtn.addEventListener('click', () => window.print());
+  
+  const startOverBottomBtn = document.getElementById('startOverBottom'); if(startOverBottomBtn) startOverBottomBtn.addEventListener('click', startOver);
 
 
-  let currentWizardPage = 1;
-  const totalWizardPages = 4;
-
-  function showWizardPage(page){
-    currentWizardPage = Math.max(1, Math.min(totalWizardPages, page));
-    document.querySelectorAll('.wizard-page').forEach(p => {
-      p.classList.toggle('active', Number(p.dataset.page) === currentWizardPage);
-    });
-    const pct = (currentWizardPage / totalWizardPages) * 100;
-    document.getElementById('wizardFill').style.width = pct + '%';
-    document.getElementById('wizardText').textContent = 'Step ' + currentWizardPage + ' of ' + totalWizardPages;
-    const active = document.querySelector('.wizard-page.active');
-    if(active) active.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-
-  document.querySelectorAll('[data-next]').forEach(btn => {
-    btn.addEventListener('click', () => showWizardPage(Number(btn.dataset.next)));
-  });
-  document.querySelectorAll('[data-prev]').forEach(btn => {
-    btn.addEventListener('click', () => showWizardPage(Number(btn.dataset.prev)));
-  });
+  
 
   updateSelectedQuestions();
   recommendQuestions();
